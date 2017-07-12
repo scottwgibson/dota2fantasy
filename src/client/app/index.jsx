@@ -4,8 +4,8 @@ import HeaderComponent from './components/Header.jsx'
 
 class App extends React.Component {
   render () {
-    return <div>
-       <h1>Hello React!</h1>
+    return <div className="FantasyApp">
+       <HeaderComponent/>
        <ul>
          <li>Hello</li>
          <li>React</li>
@@ -13,7 +13,7 @@ class App extends React.Component {
          <li>To</li>
          <li>Do</li>
         </ul>
-      <HeaderComponent message="well shit"/>
+
     </div>;
   }
 }
