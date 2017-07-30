@@ -3,8 +3,7 @@ import '../react-tap-event';
 import React, { Component } from 'react';
 import { render } from 'react-dom';
 import HeaderComponent from './components/Header';
-import TeamList from './components/TeamList';
-import CardList from './components/CardList';
+import CardTable from './components/CardTable';
 
 let FANTASY_DATA = null
 let PLAYERS_DATA = null;
@@ -16,36 +15,63 @@ class App extends Component {
     cards: []
   };
 
-  calculateScore ( card, data )
+  calcScore ( card, data )
   {
-    const matches = Object.keys(data.series).reduce((matches, series_id) =>
-        matches.concat(data.series[series_id])
-      , []);
+    if ( data )
+    {
+      //console.log(data[0].account_id);
+      const total = data.reduce((total, match) => {
+          Object.keys(total).map((key, i) => {
+            total[key]+= match.fantasy_data[key];
+          })
+          return total;
+      }, {
+        kills: 0,
+        deaths: 0,
+        creep_score: 0,
+        gpm: 0,
+        towers_killed: 0,
+        roshans_killed: 0,
+        teamfight_participation: 0,
+        obs_placed: 0,
+        creeps_stacked: 0,
+        rune_pickups: 0,
+        firstblood_claimed: 0,
+        stuns: 0});
 
-    return matches.reduce((total, match) => {
-        return total +
-          match.kills * 0.3 +
-          match.deaths * 0.3 +
-          match.last_hits * 0.003 +
-          match.denies * 0.003 +
-          match.gold_per_min * 0.002 +
-          match.towers_killed * 1 +
-          match.roshans_killed * 1 +
-          match.teamfight_participation * 3 +
-          match.obs_placed * 0.5 +
-          match.creeps_stacked * 0.5 +
-          match.rune_pickups * 0.25 +
-          match.firstblood_claimed * 4 +
-          match.stuns * 0.05;
-    }, 0) / matches.length;
-  }
+        const average = Object.keys(total).reduce((average, key)=>{
+            average[key] = total[key] / data.length;
+            return average;
+        }, {});
+        
+        return average;
+    }
+
+  } 
 
   addDefaults ( )
   {
-    const defaults = Object.keys(FANTASY_DATA).map(i => { return {
-      account_id : FANTASY_DATA[i].account_id,
-      score : this.calculateScore(null, FANTASY_DATA[i])
-    }});
+    const card = {
+        kills: 0,
+        deaths: 0,
+        creep_score: 0,
+        gpm: 0,
+        towers_killed: 0,
+        roshans_killed: 0,
+        teamfight_participation: 0,
+        obs_placed: 0,
+        creeps_stacked: 0,
+        rune_pickups: 0,
+        firstblood_claimed: 0,
+        stuns: 0
+    };
+
+    const defaults = Object.keys(PLAYERS_DATA).map(i => { return {
+      player: PLAYERS_DATA[i],
+      data: FANTASY_DATA[i],
+      card: card,
+      score: this.calcScore(card, FANTASY_DATA[i])
+    }}).filter(x => x.data);
     this.setState({cards: defaults})
   }
 
@@ -55,16 +81,13 @@ class App extends Component {
         loading: true
       })
       Promise.all([
-        import('../data/data.json'),
-        import('../data/players_data.json'),
+        import('../data/fantasy_data.json'),
+        import('../data/players.json'),
         import('../data/team_data.json')
       ])
       .then(([ data, players_data, team_data ]) => {
         FANTASY_DATA = data;
-        PLAYERS_DATA = players_data.reduce((acc, x) => {
-          acc[x.account_id] = x;
-          return acc
-        }, {});
+        PLAYERS_DATA = players_data;
         TEAM_DATA = team_data.reduce((acc, x) => {
           acc[x.team_id] = x;
           return acc
@@ -78,16 +101,11 @@ class App extends Component {
   render() {
     return <div className="FantasyApp">
       <HeaderComponent/>
-      <CardList
-        loading={this.state.loading}
-        cards={this.state.cards}
-        players_data={PLAYERS_DATA}
-      />
-      <TeamList
-        loading={this.state.loading}
-        players={FANTASY_DATA}
-        players_data={PLAYERS_DATA}
-        team_data={TEAM_DATA}
+        <CardTable
+          loading={this.state.loading}
+          cards={this.state.cards}
+          players={PLAYERS_DATA}
+          teams={TEAM_DATA}
       />
     </div>;
   }
