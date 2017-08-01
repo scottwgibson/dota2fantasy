@@ -4,9 +4,9 @@ import styled from 'styled-components';
 import CardRow from './CardRow'
 
 const StyledTable = styled("table")`
-   width: 80%
-   border-style: line
-   border-width: 1px
+    border: 1px solid black;
+    border-collapse: collapse;
+    text-align: center;
 `;
 
 export const CardTable = ( { loading, cards, players, teams }) => {
@@ -16,18 +16,7 @@ export const CardTable = ( { loading, cards, players, teams }) => {
         return null;
     }
 
-    const sorted_cards = cards.sort((a,b) => {
-        if (a.score < b.score) {
-            return 1;
-        }
-        else if (a.score > b.score) {
-            return -1;
-        }
-        else
-        {
-            return 0;
-        }
-    });
+    const sorted_cards = cards.sort((a,b) => b.total_score - a.total_score);
 
     return (
         <StyledTable>
@@ -35,6 +24,7 @@ export const CardTable = ( { loading, cards, players, teams }) => {
              <tr>
                 <th>Player</th>
                 <th>Team</th>
+                <th>Fantasy Role</th>
                 <th>Kills</th>
                 <th>Deaths</th>
                 <th>CS</th>
@@ -47,10 +37,11 @@ export const CardTable = ( { loading, cards, players, teams }) => {
                 <th>Runes</th>
                 <th>First Blood</th>
                 <th>Stuns</th>
+                <th>Total Score</th>
               </tr>
             </thead>
             <tbody>
-            {sorted_cards.map(( card, i) => <CardRow
+            {sorted_cards.map((card, i) => <CardRow
                 key = {i}
                 card = {card}
                 player = {players[card.player.account_id]}

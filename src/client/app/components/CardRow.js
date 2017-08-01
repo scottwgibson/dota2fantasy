@@ -6,11 +6,16 @@ const StyledRow = styled("tr")`
     font-size: 12px;
 `;
 
+const FANTASY_ROLES = [
+    "Core", "Offlane", "Support"
+]
+
 export const CardRow = ( { card, player, team }) => {
     return (
         <StyledRow>
             <td>{player.name}</td>
             <td>{team.name}</td>
+            <td>{FANTASY_ROLES[player.fantasy_role]}</td>
             <td>{card.score.kills.toFixed(2)}</td>
             <td>{card.score.deaths.toFixed(2)}</td>
             <td>{card.score.creep_score.toFixed(2)}</td>
@@ -23,6 +28,7 @@ export const CardRow = ( { card, player, team }) => {
             <td>{card.score.rune_pickups.toFixed(2)}</td>
             <td>{card.score.firstblood_claimed.toFixed(2)}</td>
             <td>{card.score.stuns.toFixed(2)}</td>
+            <td>{card.total_score.toFixed(2)}</td>
         </StyledRow>
     );
 }

@@ -15,39 +15,46 @@ class App extends Component {
     cards: []
   };
 
-  calcScore ( card, data )
+  calcAverage ( card, data )
   {
-    if ( data )
-    {
-      //console.log(data[0].account_id);
-      const total = data.reduce((total, match) => {
-          Object.keys(total).map((key, i) => {
-            total[key]+= match.fantasy_data[key];
-          })
-          return total;
-      }, {
-        kills: 0,
-        deaths: 0,
-        creep_score: 0,
-        gpm: 0,
-        towers_killed: 0,
-        roshans_killed: 0,
-        teamfight_participation: 0,
-        obs_placed: 0,
-        creeps_stacked: 0,
-        rune_pickups: 0,
-        firstblood_claimed: 0,
-        stuns: 0});
+    const total = data.reduce((total, match) => {
+        Object.keys(match.fantasy_data).map((key, i) => {
+        total[key] = (total[key] || 0) + match.fantasy_data[key];
+        })
+        return total;
+    }, {});
 
-        const average = Object.keys(total).reduce((average, key)=>{
-            average[key] = total[key] / data.length;
-            return average;
-        }, {});
+      const average = Object.keys(total).reduce((average, key)=>{
+         average[key] = total[key] / data.length;
+          return average;
+      }, {});
         
-        return average;
-    }
-
+      return average;
   } 
+
+  calcScore ( card, averages )
+  {
+      return Object.keys(averages).reduce((score, key) => {
+        score[key] = ( key === "deaths") ?
+           3 - score[key] * averages[key] : 
+           score[key] * averages[key];
+        score[key] = score[key] + (score[key] * (card[key] / 100 ))
+        return score;
+      }, {
+        kills: 0.3,
+        deaths: 0.3,
+        creep_score: 0.003,
+        gpm: 0.002,
+        towers_killed: 1,
+        roshans_killed: 1,
+        teamfight_participation: 3,
+        obs_placed: 0.5,
+        creeps_stacked: 0.5,
+        rune_pickups: 0.25,
+        firstblood_claimed: 4,
+        stuns: 0.05
+      });
+  }
 
   addDefaults ( )
   {
@@ -66,12 +73,19 @@ class App extends Component {
         stuns: 0
     };
 
-    const defaults = Object.keys(PLAYERS_DATA).map(i => { return {
-      player: PLAYERS_DATA[i],
-      data: FANTASY_DATA[i],
-      card: card,
-      score: this.calcScore(card, FANTASY_DATA[i])
-    }}).filter(x => x.data);
+    const defaults = Object.keys(PLAYERS_DATA).filter(i=> i !== "87196890").map(i => { 
+      const averages = this.calcAverage(card, FANTASY_DATA[i]);
+      const score = this.calcScore(card, averages);
+      const total_score = Object.keys(score).reduce((total, i) => total + score[i], 0);
+      return {
+        player: PLAYERS_DATA[i],
+        data: FANTASY_DATA[i],
+        card: card,
+        averages: averages,
+        score: score,
+        total_score: total_score
+        }
+      });
     this.setState({cards: defaults})
   }
 
